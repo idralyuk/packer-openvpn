@@ -1,0 +1,24 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - packer
+      - run:
+          name: Install Packer
+          command: ./install_packer.sh
+      - save_cache:
+          key: packer
+          paths:
+            - ~/packer
+      - run:
+          name: Validate Packer template
+          command: packer validate -syntax-only openvpn-template.json
+      - run:
+          name: Run the build
+          command: ./build.sh
+          no_output_timeout: 30m

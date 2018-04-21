@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "aws_profile": "{{env `AWS_PROFILE`}}",
+    "source_ami": "",
+    "instance_type": "m4.large",
+    "vpc_id": "",
+    "subnet_id": "",
+    "connected_devices": "2",
+    "ami_users": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "profile": "{{user `aws_profile`}}",
+    "region": "{{user `aws_region`}}",
+    "source_ami": "{{user `source_ami`}}",
+    "instance_type": "{{user `instance_type`}}",
+    "ssh_username": "openvpnas",
+    "ami_name": "{{isotime \"2006-01-02\"}} OpenVPN for {{user `connected_devices`}} Connected Devices",
+    "ami_description": "Created by Packer",
+    "vpc_id": "{{user `vpc_id`}}",
+    "subnet_id": "{{user `subnet_id`}}",
+    "associate_public_ip_address": true,
+    "force_deregister": true,
+    "force_delete_snapshot": true,
+    "iam_instance_profile": "PackerRole",
+    "ami_users": "{{user `ami_users`}}",
+    "shutdown_behavior": "terminate",
+    "tags": {
+      "Name": "OpenVPN",
+      "Creator": "Packer",
+      "OS_Version": "Ubuntu"
+    }
+  }],
+  "provisioners": [{
+      "type": "file",
+      "source": "rc.local",
+      "destination": "/tmp/rc.local"
+   },
+   {
+     "type": "file",
+     "source": "logrotate.config",
+     "destination": "/tmp/logrotate.config"
+   },
+   {
+     "type": "file",
+     "source": "awslogs.conf",
+     "destination": "/tmp/awslogs.conf"
+  },
+  {
+    "type": "shell",
+    "script": "setup-openvpn-ami.sh"
+  }]
+}
